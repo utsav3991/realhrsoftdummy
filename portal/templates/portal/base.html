@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RealHRSoft (dummy)</title>
+  <style>
+    :root { --bg: #f6f7f9; --fg: #1d2330; --muted: #5b6475; --card: #fff; --line: #dde1e8; --accent: #2457c5; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #14171d; --fg: #e6e9ef; --muted: #9aa3b5; --card: #1c2028; --line: #2d333f; --accent: #7aa2ff; }
+    }
+    body { margin: 0; font: 15px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--card); }
+    main { max-width: 960px; margin: 0 auto; padding: 16px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    .muted { color: var(--muted); }
+    button, select, input { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); }
+    button { cursor: pointer; border-color: var(--accent); color: var(--accent); }
+    pre { overflow: auto; max-height: 420px; background: var(--bg); padding: 12px; border-radius: 6px; font-size: 13px; }
+    code { font-size: 13px; }
+    form.inline { display: inline; }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>RealHRSoft <span class="muted">(dummy)</span></strong>
+    {% if user.is_authenticated %}
+      <span>{{ user.get_username }} ·
+        <form class="inline" method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Sign out</button></form>
+      </span>
+    {% endif %}
+  </header>
+  <main>{% block content %}{% endblock %}</main>
+</body>
+</html>

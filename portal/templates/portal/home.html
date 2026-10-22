@@ -1,0 +1,69 @@
+{% extends "portal/base.html" %}
+{% block content %}
+{% if not employee %}
+  <div class="card">This login is not an employee. Operators use the <a href="{% url 'admin:index' %}">admin</a>.</div>
+{% else %}
+  <div class="card">
+    <h2>{{ employee.display_name }}</h2>
+    <p class="muted">
+      Client: {{ employee.client|default:"none" }} ·
+      revision {{ employee.revision }} ·
+      {% if employee.active %}active{% else %}inactive{% endif %}
+    </p>
+    {% if companies %}
+      <form method="post" action="{% url 'portal-select-company' %}">
+        {% csrf_token %}
+        <label>Acting for
+          <select name="company" onchange="this.form.submit()">
+            {% for company in companies %}
+              <option value="{{ company.uuid }}" {% if company.uuid|stringformat:"s" == selected %}selected{% endif %}>{{ company.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </form>
+    {% else %}
+      <p>No current employment: the Marketplace grants no business access.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>Marketplace</h3>
+    <p>Offers, company benefits, claims and vouchers, inside RealHRSoft.</p>
+    <p><a href="{% url 'portal-marketplace' %}"><button type="button">Open the Marketplace</button></a></p>
+  </div>
+
+  <div class="card">
+    <h3>Call the Marketplace through the proxy</h3>
+    <p class="muted">Same request the Vue employee package makes: <code>/api/marketplace/&lt;path&gt;</code> with <code>X-Company-ID</code>.</p>
+    <form id="tester">
+      <select id="method"><option>GET</option><option>POST</option></select>
+      <input id="path" value="marketplace/offers" size="40">
+      <button type="submit">Send</button>
+    </form>
+    <p><textarea id="body" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="JSON body for POST"></textarea></p>
+    <pre id="result" class="muted">No request yet.</pre>
+  </div>
+
+  {{ selected|json_script:"selected-company" }}
+  <script>
+    const csrf = "{{ csrf_token }}";
+    document.getElementById("tester").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const method = document.getElementById("method").value;
+      const path = document.getElementById("path").value.replace(/^\/+/, "");
+      const body = document.getElementById("body").value.trim();
+      const companyId = JSON.parse(document.getElementById("selected-company").textContent);
+      const headers = { "Accept": "application/json", "X-CSRFToken": csrf, "X-Request-ID": crypto.randomUUID() };
+      if (companyId) headers["X-Company-ID"] = companyId;
+      if (method === "POST") { headers["Content-Type"] = "application/json"; headers["Idempotency-Key"] = crypto.randomUUID(); }
+      const out = document.getElementById("result");
+      out.textContent = "…";
+      const response = await fetch(`/api/marketplace/${path}`, { method, headers, body: method === "POST" ? (body || "{}") : undefined, credentials: "same-origin" });
+      const text = await response.text();
+      let shown = text;
+      try { shown = JSON.stringify(JSON.parse(text), null, 2); } catch (_) {}
+      out.textContent = `${response.status} ${response.statusText}\n\n${shown}`;
+    });
+  </script>
+{% endif %}
+{% endblock %}

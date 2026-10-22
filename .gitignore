@@ -1,0 +1,19 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+.pytest_cache/
+frontend/node_modules/
+portal/static/marketplace/
+staticfiles/
+
+# Local editor settings, credentials, and database files
+.idea/
+.vscode/
+.env.*
+!.env.example
+*.sqlite3*
+*.pem
+*.key
+.DS_Store

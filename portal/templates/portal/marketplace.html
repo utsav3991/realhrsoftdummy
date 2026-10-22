@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Marketplace · RealHRSoft (dummy)</title>
+  {% if assets %}
+    {% for href in assets.styles %}<link rel="stylesheet" href="{{ href }}">{% endfor %}
+    <script type="module" src="{{ assets.script }}"></script>
+  {% endif %}
+</head>
+<body>
+  {{ app_context|json_script:"realhrsoft-context" }}
+  {% if assets %}
+    <div id="app"></div>
+  {% else %}
+    <main style="font: 15px/1.5 system-ui, sans-serif; max-width: 640px; margin: 48px auto; padding: 0 16px;">
+      <h1>The employee app is not built yet</h1>
+      <p>Build it once (or keep <code>npm run watch</code> running):</p>
+      <pre>cd frontend
+npm install
+npm run build</pre>
+      <p><a href="{% url 'portal-home' %}">Back to RealHRSoft home</a></p>
+    </main>
+  {% endif %}
+</body>
+</html>

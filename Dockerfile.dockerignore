@@ -1,0 +1,18 @@
+# Used with realhrsoftdummy/Dockerfile, whose context is the codebase directory:
+# send only this project and the employee screens package.
+*
+!realhrsoftdummy
+!realhrsoft-marketplace-employee-vue
+
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.git
+**/.idea
+**/.pytest_cache
+realhrsoftdummy/.env
+realhrsoftdummy/db.sqlite3
+realhrsoftdummy/staticfiles
+realhrsoftdummy/portal/static/marketplace
+realhrsoft-marketplace-employee-vue/dist
