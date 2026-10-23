@@ -14,7 +14,10 @@ export default defineConfig({
     dedupe: ["vue", "vue-router", "vuetify"],
   },
   build: {
-    outDir: fileURLToPath(new URL("../portal/static/marketplace", import.meta.url)),
+    // On Vercel the "frontend" service serves its own dist/ (see ../vercel.json).
+    outDir: process.env.VERCEL
+      ? "dist"
+      : fileURLToPath(new URL("../portal/static/marketplace", import.meta.url)),
     emptyOutDir: true,
     manifest: true,
     rollupOptions: { input: "src/main.ts" },
