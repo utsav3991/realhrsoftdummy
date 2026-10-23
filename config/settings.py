@@ -6,6 +6,7 @@ publishes its public keys, pushes snapshot events and serves the snapshot API th
 Marketplace reconciliation reads. See README.md for the Marketplace .env values.
 """
 
+import os
 from datetime import timedelta
 from pathlib import Path
 
@@ -35,6 +36,14 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 # for example https://realhrsoft.example.com, so the login and admin forms pass CSRF.
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# On Vercel (which sets VERCEL=1), trust its domains without extra configuration.
+if os.environ.get("VERCEL"):
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, ".vercel.app"]
+    for _var in ("VERCEL_URL", "VERCEL_BRANCH_URL", "VERCEL_PROJECT_PRODUCTION_URL"):
+        if _host := os.environ.get(_var):
+            ALLOWED_HOSTS.append(_host)
+            CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, f"https://{_host}"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
