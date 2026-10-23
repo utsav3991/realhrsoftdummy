@@ -5,12 +5,13 @@
   "description": "RealHRSoft dummy web host that mounts the Marketplace employee screens. Built into portal/static/marketplace and served by Django.",
   "scripts": {
     "build": "vite build",
+    "vendor:employee": "cd ../../realhrsoft-marketplace-employee-vue && npm pack --pack-destination ../realhrsoftdummy/frontend/vendor && cd - && npm install",
     "watch": "vite build --watch",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
-    "@realhrsoft/marketplace-employee": "file:../../realhrsoft-marketplace-employee-vue",
+    "@realhrsoft/marketplace-employee": "file:vendor/realhrsoft-marketplace-employee-0.1.0.tgz",
     "vue": "3.5.44",
     "vue-router": "4.6.4",
     "vuetify": "3.13.6"

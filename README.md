@@ -129,9 +129,10 @@ order. The Marketplace still needs its Celery worker and beat to apply events.
 
 `frontend/` is a small Vite app that plays the RealHRSoft web host. It owns the app bar,
 the company switcher, the account menu and the navigation drawer, and mounts the package's
-routes under `/marketplace`. It links the package from `../../realhrsoft-marketplace-employee-vue`
-and imports its built `dist/`, so rebuild the package (`npm run build` there) after changing
-it.
+routes under `/marketplace`. It installs the package from the tarball in `frontend/vendor/`
+and imports its built `dist/`. After changing the sibling employee package, run
+`npm run build` there, then `npm run vendor:employee` in `frontend/` and commit the
+updated tarball and lockfile.
 
 - `npm run build` writes to `portal/static/marketplace/`. Django's `/marketplace/...` view
   reads the Vite manifest and serves the app for every path (history routing). Before the
@@ -144,6 +145,56 @@ it.
   there and keeps the choice in the session, so the home page and the screens agree.
 - `vite.config.ts` dedupes `vue`, `vue-router` and `vuetify`, because the linked package
   has its own `node_modules`. Without that, two copies of Vue would break the screens.
+
+## Deploy Django and Vue on Vercel
+
+Use the repository root (the directory containing `manage.py` and `vercel.json`)
+as the Vercel Root Directory. The framework is Django. Clear any dashboard overrides
+for the previous Vite install command, build command, and output directory so the
+repository configuration applies.
+
+The build installs the vendored frontend package and builds Vue into
+`portal/static/marketplace/`, including the manifest read by Django. Vercel's Django
+integration then runs `collectstatic` and serves the assets at `/static/` from its
+CDN. Django serves login, admin, API routes and `/marketplace/...` on the same domain,
+with the actual employee session and CSRF context. No standalone demo HTML is used.
+
+Set these environment variables in Vercel before deploying:
+
+| Variable | Value |
+| --- | --- |
+| `DEBUG` | `false` |
+| `SECRET_KEY` | A generated secret, stable across deployments |
+| `DATABASE_URL` | An external PostgreSQL connection URL; local SQLite is not persistent on Vercel |
+| `ALLOWED_HOSTS` | Your exact deployment/custom hostnames, comma-separated, without `https://` |
+| `CSRF_TRUSTED_ORIGINS` | The corresponding `https://` origins, comma-separated |
+| `ISSUER` | The stable public URL of this Django app, matching the Marketplace configuration |
+| `MARKETPLACE_URL` | The deployed Marketplace backend URL, without `/api` |
+| `SNAPSHOT_API_TOKEN` | A generated secret shared with the Marketplace |
+| `SYNC_DELIVER_ON_COMMIT` | `false`; background threads are not a reliable delivery worker on serverless hosting |
+
+Keep preview deployments on a separate database and configure their hostnames and
+origins too. Commit `frontend/vendor/*.tgz` and `frontend/package-lock.json` so a
+fresh checkout can install the frontend without the sibling repository.
+
+With the target database and integration environment variables loaded in a trusted
+local shell, initialize it explicitly:
+
+```bash
+poetry run python manage.py migrate
+poetry run python manage.py createsuperuser
+poetry run python manage.py signing_keys rotate employee
+poetry run python manage.py signing_keys rotate sync
+```
+
+Migrations and demo seeders do not run automatically during builds. For demo data,
+the existing `make seed` commands create accounts with the documented demo password.
+Run `poetry run python manage.py deliver_events` against the deployed database to
+deliver pending events; run `--loop` on a separate persistent worker if automatic
+retries are needed. Vercel does not start this project's delivery loop.
+
+After deployment, check `/login/`, `/admin/`, and `/marketplace` after signing in.
+The Marketplace backend remains a separate service and must also be reachable.
 
 ## How it behaves
 
